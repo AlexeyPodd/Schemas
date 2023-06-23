@@ -1,0 +1,6 @@
+__pycache__/
+db.sqlite3
+credential.txt
+media/source/*
+media/csv_files/*
+schemas/settings.py

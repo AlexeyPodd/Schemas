@@ -1,0 +1,174 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+{% load additional_tags %}
+
+{% block content %}
+<div class="container-fluid p-5">
+    <div class="row mx-5">
+        <div class="col-9">
+            <div class="row">
+                <form method="POST" class="form-container">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-6">
+                            <h1>{{ title }}</h1>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end">
+                            <div>
+                                <button class="btn btn-lg btn-primary" type="submit">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Main Form-->
+                    <div class="row">
+                        <div class="col-6">
+
+                            <!--Non field errors-->
+                            {% if form.non_field_errors %}
+                            <div class="text-danger text-center">
+                                {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!--Fields-->
+                            {% for field in form %}
+                                <label for="{{ field.id_for_label }}">{{field.label}}</label>
+                                <div class="row{% if field.errors %} is-invalid{% else %} mb-4{% endif %}">
+                                    {% if field.errors %}
+                                        {{ field|add_attrs:"is-invalid" }}
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                                    {% if field.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for err in field.errors %}
+                                        <p>{{ err }}</p>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <h2>Schema columns</h2>
+                    </div>
+
+                    <!--Formset-->
+                    {{ formset.management_form }}
+
+                    <!--Non form errors-->
+                    {% if formset.non_form_errors %}
+                    <div class="text-danger text-center">
+                        {% for error in formset.non_form_errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div id="column-form-list">
+                        {% for column_form in formset %}
+                        <div class="column-form col-12 p-3">
+                            {{ column_form.id }}
+
+                            <!--Non form errors-->
+                            {% if column_form.non_field_errors %}
+                            <div class="text-danger text-center">
+                                {% for error in column_form.non_field_errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!--Field labels-->
+                            <div class="row">
+                                {% for field in column_form.visible_fields %}
+                                    <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'ORDER' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-label-{{ forloop.parentloop.counter0 }}-container"{% elif field.name == 'maximal' %} id="maximal-label-{{ forloop.parentloop.counter0 }}-container"{% endif %}>
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                            <label for="{{ field.id_for_label }}">{{field.label}}</label>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                <div class="col-1">
+                                </div>
+                            </div>
+
+                            <!--Form Fields-->
+                            <div class="row">
+                                {% for field in column_form.visible_fields %}
+                                    <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'ORDER' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-input-{{ forloop.parentloop.counter0 }}-container"{% elif field.name == 'maximal' %} id="maximal-input-{{ forloop.parentloop.counter0 }}-container"{% endif %}>
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                            {% if field.errors %}
+                                                {{ field|add_attrs:"is-invalid" }}
+                                            {% else %}
+                                                {{ field }}
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if field.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for err in field.errors %}
+                                            <p>{{ err }}</p>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+
+                                <div class="col-1 deletion-form-{{ forloop.counter0 }}-link">
+                                    <a href="#" class="link-danger link-underline-opacity-0">Delete</a>
+                                </div>
+
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="border rounded mt-4">
+                        <div class="col-12 p-3" id="empty-form">
+                            {{ formset.empty_form.id }}
+                            <!--Field labels-->
+                            <div class="row">
+                                {% for field in formset.empty_form.visible_fields %}
+                                    <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'order' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-label-__prefix__-container"{% elif field.name == 'maximal' %} id="maximal-label-__prefix__-container"{% endif %}>
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                            <label for="{{ field.id_for_label }}">{{field.label}}</label>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                <div class="col-1">
+                                </div>
+                            </div>
+                            <!--Form Fields-->
+                            <div class="row">
+                                {% for field in formset.empty_form.visible_fields %}
+                                    <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'ORDER' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-input-__prefix__-container"{% elif field.name == 'maximal' %} id="maximal-input-__prefix__-container"{% endif %}>
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal'%}
+                                            {{ field }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                <div class="col-1">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="m-3">
+                            <button id="add-column" type="button" class="btn btn-primary">Add Column</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    const valuesDataTypeNeedLimit = [{% for value in data_types_need_limits %}"{{ value }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+</script>
+<script src="{% static 'JS/formset-management.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-5">
+    <div class="row mx-5">
+        <div class="col-9">
+            <div class="row">
+                <p>
+                    <span class="h1">Sample schema</span>
+                    <span class="mx-5"><a href="{% url 'edit-schema' schema_slug=schema.slug %}" class="h4 link-primary link-underline-opacity-0">Edit schema</a></span>
+                </p>
+            </div>
+            <div class="row mt-4">
+                <div class="col-9">
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Column name</th>
+                          <th scope="col">Column type</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for column in schema.columns.all %}
+                        <tr>
+                          <th scope="row">{{ forloop.counter }}</th>
+                          <td>{{ column.name }}</td>
+                          <td>{{ column.data_type.name }}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-4 d-flex justify-content-between">
+                <div class="col-3">
+                    <h1>{{ title }}</h1>
+                </div>
+                <div class="col-3 d-flex justify-content-end">
+                    <div>
+                        <form id="post-form" method="POST">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-2 d-flex align-items-center"><label for="rows-amount">Rows:</label></div>
+                                <div class="col-4">
+                                    <input id="rows-amount" type="number" min="1" class="form-control" name="rows-amount" required>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-success" type="submit">Generate data</button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Created</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="data-sets-table-body">
+                        {% for data_set in object_list %}
+                        <tr>
+                          <th class="data-set-row" scope="row">{{ forloop.counter }}</th>
+                          <td>{{ data_set.time_create }}</td>
+                          <td><span class="badge text-bg-{% if data_set.finished and data_set.file %}success">Ready{% elif data_set.finished %}danger">Failed{% else %}secondary processing-data-set-badge" id="processing-data-set-badge-id-{{ data_set.pk }}">Processing{% endif %}</span></td>
+                          <td>{% if data_set.finished and data_set.file %}<a href="{% url 'download' %}?data_set={{ data_set.pk }}" class="link-primary link-underline-opacity-0">Download</a>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    let dataGeneratingUrl = "{% url 'data-set-start-generating' %}"
+    let downloadUrl = "{% url 'download' %}"
+    let getGeneratingDataSetIdsUrl = "{% url 'get-generating-data-sets' %}"
+    let schemaSlug = "{{ schema.slug }}"
+</script>
+<script src="{% static 'JS/data-set-generating.js' %}"></script>
+<script src="{% static 'JS/track-processing-data-sets-statuses.js' %}"></script>
+{% endblock %}

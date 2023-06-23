@@ -1,0 +1,57 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid p-5">
+    <div class="row mx-5">
+        <div class="col-9">
+            <div class="row">
+                <div class="col-6">
+                    <h1>{{ title }}</h1>
+                </div>
+                <div class="col-6 d-flex justify-content-end">
+                    <div>
+                        <a href="{% url 'create-schema' %}" class="btn btn-lg btn-success">New schema</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    {% csrf_token %}
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Title</th>
+                          <th scope="col">Modified</th>
+                          <th scope="col">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for schema in schemas %}
+                        <tr>
+                          <th scope="row">{{ forloop.counter }}</th>
+                          <td><a href="{% url 'schema-data-sets' schema_slug=schema.slug %}" class="link-primary link-underline-opacity-0">{{ schema.name }}</a></td>
+                          <td>{{ schema.time_update | date }}</td>
+                          <td>
+                              <span class="m-3"><a href="{% url 'edit-schema' schema_slug=schema.slug %}" class="link-primary link-underline-opacity-0">Edit schema</a></span>
+                              <span class="m-3"><a href="#" id="link-deletion-schema-{{ schema.slug }}" class="link-danger link-underline-opacity-0">Delete</a></span>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    const schemaSlugs = [{% for schema in schemas %}"{{ schema.slug }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const deleteSchemaUrl = "{% url 'delete-schema' %}";
+</script>
+<script src="{% static 'JS/delete-schema.js' %}"></script>
+{% endblock %}

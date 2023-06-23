@@ -1,0 +1,18 @@
+<nav class="navbar bg-light navbar-expand-md sticky-top">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse justify-content-between mx-5">
+            <div class="navbar-nav">
+                <a href="{% url 'schema-list' %}" class="navbar-brand fw-bold mx-5">
+                    FakeCSV
+                </a>
+                <a href="{% url 'schema-list' %}" class="nav-link{% if current_section == 'schemas' %} active{% endif %} px-5">
+                    Schemas
+                </a>
+            </div>
+            <div class="navbar-nav">
+                <p class="navbar-text mx-3 text-secondary">Hello, <b>{{ request.user.username }}</b></p>
+                <a href="{% url 'logout' %}" class="nav-link mx-3 text-secondary">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>

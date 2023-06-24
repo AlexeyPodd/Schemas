@@ -18,7 +18,7 @@ class GenerationManager:
 
     @classmethod
     def get_generation_kwargs(cls, have_limits: bool, minimal: [int, None], maximal: [int, None],
-                              source_file: FieldFile) -> dict:
+                              source_file: [FieldFile, None]) -> dict:
 
         if have_limits and (minimal is None or maximal is None):
             raise ValueError("Both limits (maximal and minimal) nust be set")

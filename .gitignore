@@ -3,4 +3,4 @@ db.sqlite3
 credential.txt
 media/source/*
 media/csv_files/*
-schemas/settings.py
+.secret_key

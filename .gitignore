@@ -4,3 +4,4 @@ credential.txt
 media/source/*
 media/csv_files/*
 .secret_key
+mainapp/migrations/*

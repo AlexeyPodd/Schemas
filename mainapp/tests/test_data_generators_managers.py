@@ -8,6 +8,10 @@ from ..models import DataType
 
 
 class TestGenerationManager(TestCase):
+    def tearDown(self):
+        if hasattr(self, 'data_type'):
+            self.data_type.delete()
+
     def test_get_generation_method_returns_right_generation_function(self):
         data_type_name = 'Word'
 
@@ -17,16 +21,17 @@ class TestGenerationManager(TestCase):
         self.assertEqual(func.__name__, 'generate_word')
 
     def test_get_generation_kwargs_returns_kwargs_dict(self):
-        data_type = DataType.objects.create(
+        self.data_type = DataType.objects.create(
             name='Word',
             have_limits=True,
-            source_file=SimpleUploadedFile('test.json', json.dumps({'letters': ['a', 'b', 'c']}).encode()))
+            source_file=SimpleUploadedFile('test.json', json.dumps({'letters': ['a', 'b', 'c']}).encode())
+        )
 
         kwargs = GenerationManager.get_generation_kwargs(
-            have_limits=data_type.have_limits,
+            have_limits=self.data_type.have_limits,
             minimal=0,
             maximal=10,
-            source_file=data_type.source_file,
+            source_file=self.data_type.source_file,
         )
 
         self.assertTrue(isinstance(kwargs, dict))
@@ -36,29 +41,29 @@ class TestGenerationManager(TestCase):
         self.assertEqual(len(kwargs), 3)
 
     def test_get_generation_kwargs_need_limits_but_not_passed(self):
-        data_type = DataType.objects.create(
+        self.data_type = DataType.objects.create(
             name='Word',
             have_limits=True,
             source_file=SimpleUploadedFile('test.json', json.dumps({'letters': ['a', 'b', 'c']}).encode()))
 
         with self.assertRaises(ValueError):
             GenerationManager.get_generation_kwargs(
-                have_limits=data_type.have_limits,
+                have_limits=self.data_type.have_limits,
                 minimal=0,
                 maximal=None,
-                source_file=data_type.source_file,
+                source_file=self.data_type.source_file,
             )
         with self.assertRaises(ValueError):
             GenerationManager.get_generation_kwargs(
-                have_limits=data_type.have_limits,
+                have_limits=self.data_type.have_limits,
                 minimal=None,
                 maximal=10,
-                source_file=data_type.source_file,
+                source_file=self.data_type.source_file,
             )
         with self.assertRaises(ValueError):
             GenerationManager.get_generation_kwargs(
-                have_limits=data_type.have_limits,
+                have_limits=self.data_type.have_limits,
                 minimal=None,
                 maximal=None,
-                source_file=data_type.source_file,
+                source_file=self.data_type.source_file,
             )

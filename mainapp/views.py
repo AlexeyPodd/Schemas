@@ -61,9 +61,9 @@ class CreateSchemaView(LoginRequiredMixin, CreateView):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        self.object = None
         form = self.get_form()
         self.formset = self.formset_class(self.request.POST)
-        print(self.request.POST)
         if form.is_valid() and self.formset.is_valid():
             return self.form_valid(form)
         else:
@@ -161,7 +161,7 @@ def download(request):
     if data_set.schema.owner != request.user:
         raise Http404
 
-    if data_set.file is None:
+    if not data_set.file:
         raise Http404
 
     return FileResponse(data_set.file.open(), as_attachment=True, filename=data_set.file.name)
@@ -169,32 +169,49 @@ def download(request):
 
 def delete_schema(request):
     if request.method != 'POST':
-        raise Http404
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    schema = get_object_or_404(Schema, slug=request.POST.get('schema'))
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not Founded'}, status=404)
+
+    schema_slug = request.POST.get('schema')
+    try:
+        schema = Schema.objects.get(slug=schema_slug, owner=request.user)
+    except ObjectDoesNotExist:
+        return JsonResponse({'error': 'Not Founded'}, status=404)
+
+    if schema.owner != request.user:
+        return JsonResponse({'error': 'Not Founded'}, status=404)
+
     schema.delete()
-    return HttpResponse('Schema was deleted successfully')
+    return JsonResponse({'deleted_schema': schema_slug})
 
 
 def generate_data_set(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-    try:
-        rows = int(request.POST.get('rows'))
-    except (TypeError, ValueError):
-        return JsonResponse({'file_generated': False}, status=400)
-
-    if rows < 1:
-        return JsonResponse({'file_generated': False}, status=400)
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not Founded'}, status=404)
 
     try:
         schema = Schema.objects.get(slug=request.POST.get('schema'))
     except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Schema does not exist'}, status=404)
+        return JsonResponse({'error': 'Not Founded'}, status=404)
+
+    if schema.owner != request.user:
+        return JsonResponse({'error': 'Not Founded'}, status=404)
+
+    try:
+        rows_amount = int(request.POST.get('rows'))
+    except (TypeError, ValueError):
+        return JsonResponse({'file_generated': False}, status=400)
+
+    if rows_amount < 1:
+        return JsonResponse({'file_generated': False}, status=400)
 
     data_set = DataSet.objects.create(schema=schema)
-    data_set.generate_file(rows)
+    data_set.generate_file(rows_amount)
     return JsonResponse({'file_generated': bool(data_set.file), 'data_set_id': data_set.pk})
 
 
@@ -203,14 +220,14 @@ def get_generating_statuses(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not authenticated'}, status=403)
+        return JsonResponse({'error': 'Not Founded'}, status=404)
 
     try:
-        schema = Schema.objects.get(slug=request.GET.get('schema'))
+        schema = Schema.objects.get(slug=request.GET.get('schema'), owner=request.user)
     except ObjectDoesNotExist:
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
-    if request.user != schema.owner:
+    if schema.owner != request.user:
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
     data_sets = DataSet.objects.filter(schema=schema).\

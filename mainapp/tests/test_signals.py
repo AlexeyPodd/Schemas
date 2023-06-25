@@ -1,16 +1,13 @@
-import csv
 import os
-import re
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from schemas.settings import MEDIA_ROOT
-from ..data_generators.file_generation import generate_csv_file
-from ..models import Separator, Schema, Column, DataType, DataSet
+from mainapp.models import Separator, DataType, Schema, Column, DataSet
 
 
-class TestGenerateCSVFile(TestCase):
+class TestSignals(TestCase):
     dummy_username = 'dummy_test_user'
     dummy_password = '32145'
     dummy_email = 'dummy@gmail.com'
@@ -62,26 +59,24 @@ class TestGenerateCSVFile(TestCase):
             order=2,
         )
 
-    def test_file_generating(self):
-        data_set = DataSet.objects.create(schema=self.schema)
-        word_regex = re.compile(r'[a-z]{1,10}')
-        sentensce_regex = re.compile(r'[A-Z][a-z]{2,9}(?: [a-z]{3,10}){1,7}\.')
+    def test_data_set_file_deleting_signal(self):
+        test_scv_file = SimpleUploadedFile('test.csv', b'123gjgh')
+        data_set = DataSet.objects.create(schema=self.schema, file=test_scv_file)
+        saved_path = os.path.abspath(data_set.file.path)
 
-        generate_csv_file(data_set=data_set, rows_amount=200)
+        self.assertTrue(os.path.isfile(saved_path))
 
-        self.assertTrue(data_set.finished)
-        self.assertTrue(data_set.file)
+        data_set.delete()
 
-        try:
-            with open(os.path.abspath(data_set.file.path), newline='') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter=self.delimiter.char, quotechar=self.quotechar.char)
-                for row in reader:
-                    word = row['first']
-                    sentence = row['second']
-                    self.assertTrue(re.fullmatch(word_regex, word))
-                    self.assertTrue(re.fullmatch(sentensce_regex, sentence))
+        self.assertFalse(os.path.isfile(saved_path))
 
-        except:
-            self.fail("invalid file")
-        finally:
-            data_set.delete()
+    def test_data_type_source_file_deleting_signal(self):
+        test_scv_file = SimpleUploadedFile('test.json', b'123gjgh')
+        data_set = DataType.objects.create(name='test_data_type', source_file=test_scv_file)
+        saved_path = os.path.abspath(data_set.source_file.path)
+
+        self.assertTrue(os.path.isfile(saved_path))
+
+        data_set.delete()
+
+        self.assertFalse(os.path.isfile(saved_path))

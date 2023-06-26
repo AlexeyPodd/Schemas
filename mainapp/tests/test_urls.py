@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 
 from ..views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets, download, \
-    delete_schema, generate_data_set, get_generating_statuses
+    delete_schema, generate_data_set, get_finished_data_sets_info
 
 
 class TestUrls(SimpleTestCase):
@@ -42,6 +42,6 @@ class TestUrls(SimpleTestCase):
         url = reverse('data-set-start-generating')
         self.assertEqual(resolve(url).func, generate_data_set)
 
-    def test_get_generating_data_sets_url_resolves(self):
-        url = reverse('get-generating-data-sets')
-        self.assertEqual(resolve(url).func, get_generating_statuses)
+    def test_get_finished_data_sets_info_url_resolves(self):
+        url = reverse('get-finished-data-sets-info')
+        self.assertEqual(resolve(url).func, get_finished_data_sets_info)

@@ -271,7 +271,7 @@ class TestStartGenerating(JsonPostErrorResponsesMixin, TestView):
     url_name = 'data-set-start-generating'
 
     def tearDown(self):
-        if self.schema.data_sets and self.schema.data_sets.first().file:
+        if self.schema.data_sets.exists() and self.schema.data_sets.first().file:
             self.schema.data_sets.first().file.delete()
 
     def test_POST_rows_not_set(self):
@@ -308,7 +308,7 @@ class TestStartGenerating(JsonPostErrorResponsesMixin, TestView):
 
 
 class TestGetGeneratingStatuses(TestView):
-    url_name = 'get-generating-data-sets'
+    url_name = 'get-finished-data-sets-info'
 
     dummy_2_username = 'second_user'
     dummy_2_password = '54321'
@@ -357,7 +357,6 @@ class TestGetGeneratingStatuses(TestView):
             info = json.loads(response.content).get('info')
             for data_set_pk, data_set_info in info.items():
                 data_set = DataSet.objects.get(pk=data_set_pk)
-                self.assertEqual(data_set.finished, data_set_info.get('finished'))
                 self.assertEqual(bool(data_set.file), data_set_info.get('file_generated'))
 
         finally:

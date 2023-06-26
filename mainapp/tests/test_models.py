@@ -1,9 +1,12 @@
+import os
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import resolve
 
+from schemas.settings import MEDIA_ROOT
 from ..data_generators.data_generators import CellDataGenerator, RowDataGenerator
 from ..models import Column, DataType, Separator, Schema
 from ..views import SchemaDataSets
@@ -30,8 +33,13 @@ class TestModels(TestCase):
     def test_upload_wrong_extention_source_file(self):
         file = SimpleUploadedFile('test.txt', b'test')
         self.data_type.source_file = file
+        path = os.path.abspath(os.path.join(MEDIA_ROOT, self.data_type.source_file.path))
 
-        self.assertRaises(ValidationError, self.data_type.full_clean)
+        try:
+            self.assertRaises(ValidationError, self.data_type.full_clean)
+        finally:
+            if os.path.isfile(path):
+                os.remove(path)
 
     def test_getting_cell_data_generator(self):
         data_generator = self.column.data_generator

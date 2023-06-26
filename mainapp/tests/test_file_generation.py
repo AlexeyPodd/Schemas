@@ -47,14 +47,14 @@ class TestGenerateCSVFile(TestCase):
         )
 
         cls.column_1 = Column.objects.create(
-            name='first',
+            name='first_column_signal_test',
             minimal=1,
             maximal=10,
             data_type=cls.data_type_1,
             schema=cls.schema,
         )
         cls.column_2 = Column.objects.create(
-            name='second',
+            name='second_column_signal_test',
             minimal=2,
             maximal=8,
             data_type=cls.data_type_2,
@@ -76,12 +76,12 @@ class TestGenerateCSVFile(TestCase):
             with open(os.path.abspath(data_set.file.path), newline='') as csvfile:
                 reader = csv.DictReader(csvfile, delimiter=self.delimiter.char, quotechar=self.quotechar.char)
                 for row in reader:
-                    word = row['first']
-                    sentence = row['second']
+                    word = row['first_column_signal_test']
+                    sentence = row['second_column_signal_test']
                     self.assertTrue(re.fullmatch(word_regex, word))
                     self.assertTrue(re.fullmatch(sentensce_regex, sentence))
 
         except:
             self.fail("invalid file")
         finally:
-            data_set.delete()
+            data_set.file.delete()

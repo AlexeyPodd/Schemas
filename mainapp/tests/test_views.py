@@ -183,7 +183,7 @@ class TestEditSchemaView(NotAuthorisedMixin, AuthorisedMixin, AuthorisedNotOwner
         self.column_1.refresh_from_db()
 
         self.assertEqual(self.schema.name, self.schema_name + '_edited')
-        self.assertEqual(self.column_1.name, 'first_edited')
+        self.assertEqual(self.column_1.name, 'first_column_test_view_edited')
         self.assertRaises(ObjectDoesNotExist, self.column_2.refresh_from_db)
         self.assertEqual(self.schema.columns.count(), 2)
         self.assertRedirects(response, reverse('schema-data-sets', kwargs={'schema_slug': self.schema.slug}))
@@ -253,7 +253,7 @@ class TestDownload(AuthorisedNotOwnerMixin, TestView):
             self.assertEqual(response.get('Content-Disposition'), f"attachment; filename=\"test.csv\"")
 
         finally:
-            data_set.delete()
+            data_set.file.delete()
 
 
 class TestDeleteSchema(JsonPostErrorResponsesMixin, TestView):
@@ -269,6 +269,10 @@ class TestDeleteSchema(JsonPostErrorResponsesMixin, TestView):
 
 class TestStartGenerating(JsonPostErrorResponsesMixin, TestView):
     url_name = 'data-set-start-generating'
+
+    def tearDown(self):
+        if self.schema.data_sets and self.schema.data_sets.first().file:
+            self.schema.data_sets.first().file.delete()
 
     def test_POST_rows_not_set(self):
         self.client.login(username=self.dummy_username, password=self.dummy_password)
@@ -357,4 +361,4 @@ class TestGetGeneratingStatuses(TestView):
                 self.assertEqual(bool(data_set.file), data_set_info.get('file_generated'))
 
         finally:
-            d1.delete(), d2.delete(), d3.delete()
+            d1.file.delete()

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from mainapp.views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets,\
-    download, delete_schema, generate_data_set, get_generating_statuses
+    download, delete_schema, generate_data_set, get_finished_data_sets_info
 
 urlpatterns = [
     path('login/', UserLoginView.as_view(), name='login'),
@@ -13,5 +13,5 @@ urlpatterns = [
     path('download/', download, name='download'),
     path('delete-schema/', delete_schema, name='delete-schema'),
     path('start-generating/', generate_data_set, name='data-set-start-generating'),
-    path('get-generating-statuses/', get_generating_statuses, name='get-generating-data-sets'),
+    path('get-finished-data-sets-info/', get_finished_data_sets_info, name='get-finished-data-sets-info'),
 ]

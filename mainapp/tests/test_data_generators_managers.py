@@ -9,8 +9,8 @@ from ..models import DataType
 
 class TestGenerationManager(TestCase):
     def tearDown(self):
-        if hasattr(self, 'data_type'):
-            self.data_type.delete()
+        if hasattr(self, 'data_type') and self.data_type.source_file:
+            self.data_type.source_file.delete()
 
     def test_get_generation_method_returns_right_generation_function(self):
         data_type_name = 'Word'

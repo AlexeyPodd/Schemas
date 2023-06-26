@@ -53,14 +53,14 @@ class TestView(TestCase):
         )
 
         cls.column_1 = Column.objects.create(
-            name='first',
+            name='first_column_test_view',
             minimal=1,
             maximal=10,
             data_type=cls.data_type_1,
             schema=cls.schema,
         )
         cls.column_2 = Column.objects.create(
-            name='second',
+            name='second_column_test_view',
             minimal=2,
             maximal=8,
             data_type=cls.data_type_2,

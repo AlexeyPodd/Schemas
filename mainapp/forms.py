@@ -48,10 +48,14 @@ class BaseColumnInlineFormSet(forms.BaseInlineFormSet):
     def save(self, commit=True):
         instances = super().save(commit=True)
 
+        columns_with_changed_order = []
         for form in self.forms:
             if not (self.can_delete and self._should_delete_form(form)):
                 form.instance.order = form.cleaned_data['ORDER']
-                form.instance.save()
+                columns_with_changed_order.append(form.instance)
+
+        if columns_with_changed_order:
+            Column.objects.bulk_update(columns_with_changed_order, ['order'])
 
         return instances
 

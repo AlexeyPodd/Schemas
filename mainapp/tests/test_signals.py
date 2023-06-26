@@ -44,14 +44,14 @@ class TestSignals(TestCase):
         )
 
         cls.column_1 = Column.objects.create(
-            name='first',
+            name='first_column_test_signal',
             minimal=1,
             maximal=10,
             data_type=cls.data_type_1,
             schema=cls.schema,
         )
         cls.column_2 = Column.objects.create(
-            name='second',
+            name='second_column_test_signal',
             minimal=2,
             maximal=8,
             data_type=cls.data_type_2,
@@ -59,24 +59,28 @@ class TestSignals(TestCase):
             order=2,
         )
 
+    def tearDown(self):
+        if hasattr(self, 'saved_path') and os.path.isfile(self.saved_path):
+            os.remove(self.saved_path)
+
     def test_data_set_file_deleting_signal(self):
         test_scv_file = SimpleUploadedFile('test.csv', b'123gjgh')
         data_set = DataSet.objects.create(schema=self.schema, file=test_scv_file)
-        saved_path = os.path.abspath(data_set.file.path)
+        self.saved_path = os.path.abspath(data_set.file.path)
 
-        self.assertTrue(os.path.isfile(saved_path))
+        self.assertTrue(os.path.isfile(self.saved_path))
 
         data_set.delete()
 
-        self.assertFalse(os.path.isfile(saved_path))
+        self.assertFalse(os.path.isfile(self.saved_path))
 
     def test_data_type_source_file_deleting_signal(self):
-        test_scv_file = SimpleUploadedFile('test.json', b'123gjgh')
-        data_set = DataType.objects.create(name='test_data_type', source_file=test_scv_file)
-        saved_path = os.path.abspath(data_set.source_file.path)
+        test_json_file = SimpleUploadedFile('test.json', b'123gjgh')
+        data_set = DataType.objects.create(name='test_data_type', source_file=test_json_file)
+        self.saved_path = os.path.abspath(data_set.source_file.path)
 
-        self.assertTrue(os.path.isfile(saved_path))
+        self.assertTrue(os.path.isfile(self.saved_path))
 
         data_set.delete()
 
-        self.assertFalse(os.path.isfile(saved_path))
+        self.assertFalse(os.path.isfile(self.saved_path))

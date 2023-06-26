@@ -11,7 +11,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
 from .forms import LoginUserForm, SchemaForm, ColumnFormSet
-from .models import Schema, DataSet, DataType
+from .models import Schema, DataSet, DataType, Column
 
 
 class UserLoginView(LoginView):
@@ -95,20 +95,27 @@ class EditSchemaView(LoginRequiredMixin, UpdateView):
     slug_url_kwarg = 'schema_slug'
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = self.get_object(queryset=self.model.objects.select_related('owner'))
         if self.object.owner != request.user:
             raise Http404
 
-        self.formset = self.formset_class(instance=self.object)
+        self.formset = self.formset_class(
+            instance=self.object,
+            queryset=Column.objects.select_related('data_type').filter(schema=self.object),
+        )
         return self.render_to_response(self.get_context_data())
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = self.get_object(queryset=self.model.objects.select_related('owner'))
         if self.object.owner != request.user:
             raise Http404
 
         form = self.get_form()
-        self.formset = self.formset_class(self.request.POST, instance=self.object)
+        self.formset = self.formset_class(
+            self.request.POST,
+            instance=self.object,
+            queryset=Column.objects.select_related('data_type').filter(schema=self.object),
+        )
 
         if form.is_valid() and self.formset.is_valid():
             return self.form_valid(form)
@@ -135,7 +142,10 @@ class SchemaDataSets(LoginRequiredMixin, SingleObjectMixin, ListView):
     slug_url_kwarg = 'schema_slug'
 
     def get(self, request, *args, **kwargs):
-        self.object = get_object_or_404(Schema.objects.prefetch_related('columns__data_type'), slug=kwargs[self.slug_url_kwarg])
+        self.object = get_object_or_404(
+            Schema.objects.prefetch_related('columns__data_type').select_related('owner'),
+            slug=kwargs[self.slug_url_kwarg],
+        )
         if self.object.owner != request.user:
             raise Http404
         return super().get(request, *args, **kwargs)
@@ -176,7 +186,7 @@ def delete_schema(request):
 
     schema_slug = request.POST.get('schema')
     try:
-        schema = Schema.objects.get(slug=schema_slug, owner=request.user)
+        schema = Schema.objects.select_related('owner').get(slug=schema_slug, owner=request.user)
     except ObjectDoesNotExist:
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
@@ -195,7 +205,7 @@ def generate_data_set(request):
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
     try:
-        schema = Schema.objects.get(slug=request.POST.get('schema'))
+        schema = Schema.objects.select_related('owner').get(slug=request.POST.get('schema'))
     except ObjectDoesNotExist:
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
@@ -215,7 +225,7 @@ def generate_data_set(request):
     return JsonResponse({'file_generated': bool(data_set.file), 'data_set_id': data_set.pk})
 
 
-def get_generating_statuses(request):
+def get_finished_data_sets_info(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -223,7 +233,7 @@ def get_generating_statuses(request):
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
     try:
-        schema = Schema.objects.get(slug=request.GET.get('schema'), owner=request.user)
+        schema = Schema.objects.select_related('owner').get(slug=request.GET.get('schema'), owner=request.user)
     except ObjectDoesNotExist:
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
@@ -231,9 +241,10 @@ def get_generating_statuses(request):
         return JsonResponse({'error': 'Not Founded'}, status=404)
 
     data_sets = DataSet.objects.filter(schema=schema).\
-        annotate(file_generated=ExpressionWrapper(~Q(file=''), output_field=BooleanField()))
+        annotate(file_generated=ExpressionWrapper(~Q(file=''), output_field=BooleanField())).\
+        values('id', 'finished', 'file_generated')
 
-    info = {data_set.id: {'finished': data_set.finished, 'file_generated': data_set.file_generated}
-            for data_set in data_sets}
+    info = {data_set['id']: {'file_generated': data_set['file_generated']}
+            for data_set in data_sets if data_set['finished']}
 
     return JsonResponse({'info': info})

@@ -25,12 +25,13 @@ function updateProcessingStatusesFromServer(processingIds) {
     });
 }
 
-function setProcessingStatuses(processingIds, dataSetsServerData) {
+function setProcessingStatuses(processingIds, finishedDataSetsServerData) {
     for (let i = 0; i < processingIds.length; i++) {
-        if (dataSetsServerData[processingIds[i]].finished) {
+        console.log(finishedDataSetsServerData)
+        if ([processingIds[i]] in finishedDataSetsServerData) {
             let processingBadge = document.getElementById(`processing-data-set-badge-id-${processingIds[i]}`);
             processingBadge.removeAttribute("id");
-            if (dataSetsServerData[processingIds[i]].file_generated) {
+            if (finishedDataSetsServerData[processingIds[i]].file_generated) {
                 processingBadge.setAttribute('class', "badge text-bg-success");
                 processingBadge.textContent = "Ready";
 

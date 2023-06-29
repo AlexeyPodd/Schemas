@@ -45,8 +45,7 @@ class Column(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def data_generator(self):
+    def get_data_generator(self):
         return CellDataGenerator(
             data_type=self.data_type,
             minimal=self.minimal,
@@ -78,8 +77,7 @@ class Schema(models.Model):
     def get_absolute_url(self):
         return reverse('schema-data-sets', kwargs={'schema_slug': self.slug})
 
-    @property
-    def data_generator(self):
+    def get_data_generator(self):
         return RowDataGenerator(self.columns.all())
 
     @property

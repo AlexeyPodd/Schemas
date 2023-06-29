@@ -42,7 +42,7 @@ class TestModels(TestCase):
                 os.remove(path)
 
     def test_getting_cell_data_generator(self):
-        data_generator = self.column.data_generator
+        data_generator = self.column.get_data_generator()
 
         self.assertTrue(isinstance(data_generator, CellDataGenerator))
 
@@ -71,7 +71,7 @@ class TestModels(TestCase):
         self.assertEqual(resolve(url).func.view_class, SchemaDataSets)
 
     def test_getting_row_data_generator(self):
-        data_generator = self.schema.data_generator
+        data_generator = self.schema.get_data_generator()
 
         self.assertTrue(isinstance(data_generator, RowDataGenerator))
 

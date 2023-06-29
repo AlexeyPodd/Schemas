@@ -17,7 +17,7 @@ class CellDataGenerator:
 class RowDataGenerator:
     """Class for generating data of one row in schema, in dict format {column_name: value_in_this_row}"""
     def __init__(self, schema_columns):
-        self._cell_generators = {column.name: column.data_generator for column in schema_columns}
+        self._cell_generators = {column.name: column.get_data_generator() for column in schema_columns}
 
     def __call__(self):
         return {field_name: gen() for field_name, gen in self._cell_generators.items()}

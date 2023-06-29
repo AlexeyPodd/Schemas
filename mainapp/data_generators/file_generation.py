@@ -26,7 +26,7 @@ def generate_csv_file(data_set, rows_amount: int) -> None:
             )
             writer.writeheader()
 
-            data_generator = data_set.schema.data_generator
+            data_generator = data_set.schema.get_data_generator()
             for _ in range(rows_amount):
                 writer.writerow(data_generator())
     except:

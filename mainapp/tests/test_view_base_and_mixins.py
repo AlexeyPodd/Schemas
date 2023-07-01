@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.test import TestCase, Client
 
-from ..models import Schema, Separator, DataType, Column
+from ..models import Schema, Separator, Column
 
 
 class TestView(TestCase):
@@ -36,15 +36,6 @@ class TestView(TestCase):
         cls.delimiter = Separator.objects.create(name='dot', char='.')
         cls.quotechar = Separator.objects.create(name='double-quote', char='"')
 
-        cls.data_type_1 = DataType.objects.create(
-            name='Word',
-            have_limits=True,
-        )
-        cls.data_type_2 = DataType.objects.create(
-            name='Sentence',
-            have_limits=True,
-        )
-
         cls.schema = Schema.objects.create(
             name=cls.schema_name,
             owner=cls.user,
@@ -56,14 +47,14 @@ class TestView(TestCase):
             name='first_column_test_view',
             minimal=1,
             maximal=10,
-            data_type=cls.data_type_1,
+            data_type=Column.DataType.INTEGER,
             schema=cls.schema,
         )
         cls.column_2 = Column.objects.create(
             name='second_column_test_view',
             minimal=2,
             maximal=8,
-            data_type=cls.data_type_2,
+            data_type=Column.DataType.TEXT,
             schema=cls.schema,
             order=2,
         )

@@ -6,7 +6,7 @@ For every data type must be uniq function for data generating.
 This function's name must be in two parts.
 The first part is 'generate_', and the second part is the name of the data type,
 in lowercase, with replaced spaces by '_'.
-If data type implements limitations - function must take parameters minimal and maximal. If not - no parameters.
+If data type implements limitations - function must take parameters minimal and maximal.
 Id data types uses source file for generating - function must take parameters with same name,
 as in main dict in json source file.
 The function must return string.

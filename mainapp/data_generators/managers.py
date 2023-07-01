@@ -1,16 +1,15 @@
 import json
+import os
 from typing import Callable
 
-from django.db.models.fields.files import FieldFile
-from django.utils.text import slugify
-
+from schemas.settings import STATIC_ROOT
 from . import data_generation
 
 
 class GenerationManager:
     @staticmethod
     def get_generation_method(data_type_name: str) -> Callable:
-        method_name = 'generate_' + slugify(data_type_name).replace('-', '_')
+        method_name = 'generate_' + data_type_name.lower()
         generation_method = getattr(data_generation, method_name)
         if generation_method is None:
             raise AttributeError(f"Data generator with name {method_name} was not found")
@@ -18,7 +17,7 @@ class GenerationManager:
 
     @classmethod
     def get_generation_kwargs(cls, have_limits: bool, minimal: [int, None], maximal: [int, None],
-                              source_file: [FieldFile, None]) -> dict:
+                              source_file_name: [str, None]) -> dict:
 
         if have_limits and (minimal is None or maximal is None):
             raise ValueError("Both limits (maximal and minimal) nust be set")
@@ -27,17 +26,17 @@ class GenerationManager:
         if have_limits:
             kwargs.update(dict(minimal=minimal, maximal=maximal))
 
-        if source_file:
-            kwargs.update(cls._read_source_file(source_file))
+        if source_file_name:
+            kwargs.update(cls._read_source_file(source_file_name))
         return kwargs
 
     @staticmethod
-    def _read_source_file(file: FieldFile) -> dict:
+    def _read_source_file(file_name: str) -> dict:
         try:
-            f = file.open('r')
-            data = json.load(f)
-            if not isinstance(data, dict):
-                raise TypeError("The content of the source file must be a dictionary")
+            with open(os.path.join(STATIC_ROOT, 'source', file_name)) as file:
+                data = json.load(file)
+                if not isinstance(data, dict):
+                    raise TypeError("The content of the source file must be a dictionary")
         except FileNotFoundError:
             raise ValueError("Data type contains invalid path to source file")
         except Exception:

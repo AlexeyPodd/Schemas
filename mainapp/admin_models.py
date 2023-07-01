@@ -3,13 +3,6 @@ from django.contrib import admin
 from .forms import SeparatorForm
 
 
-class DataTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'have_limits', 'source_file')
-    list_display_links = ('id', 'name')
-    search_fields = ('name',)
-    list_filter = ('have_limits',)
-
-
 class SeparatorAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'char')
     list_editable = ('name', 'char')
@@ -21,7 +14,7 @@ class ColumnAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'minimal', 'maximal', 'data_type', 'schema')
     list_display_links = ('id', 'name')
     search_fields = ('name',)
-    list_filter = ('schema__owner', 'data_type', 'schema')
+    list_filter = ('schema__owner', 'data_type', 'schema', 'data_type')
     fields = ('name', 'minimal', 'maximal', 'data_type', 'schema')
 
 

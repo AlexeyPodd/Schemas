@@ -11,7 +11,7 @@ from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
 from .forms import LoginUserForm, SchemaForm, ColumnFormSet
-from .models import Schema, DataSet, DataType, Column
+from .models import Schema, DataSet, Column
 
 
 class UserLoginView(LoginView):
@@ -78,7 +78,7 @@ class CreateSchemaView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        data_types_need_limits = [i for i, data_type in enumerate(DataType.objects.all(), 1) if data_type.have_limits]
+        data_types_need_limits = Column.LIMITED_DATA_TYPES
         context.update({
             'title': 'New schema',
             'formset': self.formset,
@@ -99,10 +99,7 @@ class EditSchemaView(LoginRequiredMixin, UpdateView):
         if self.object.owner != request.user:
             raise Http404
 
-        self.formset = self.formset_class(
-            instance=self.object,
-            queryset=Column.objects.select_related('data_type').filter(schema=self.object),
-        )
+        self.formset = self.formset_class(instance=self.object)
         return self.render_to_response(self.get_context_data())
 
     def post(self, request, *args, **kwargs):
@@ -111,11 +108,7 @@ class EditSchemaView(LoginRequiredMixin, UpdateView):
             raise Http404
 
         form = self.get_form()
-        self.formset = self.formset_class(
-            self.request.POST,
-            instance=self.object,
-            queryset=Column.objects.select_related('data_type').filter(schema=self.object),
-        )
+        self.formset = self.formset_class(self.request.POST, instance=self.object)
 
         if form.is_valid() and self.formset.is_valid():
             return self.form_valid(form)
@@ -128,7 +121,7 @@ class EditSchemaView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        data_types_need_limits = [i for i, data_type in enumerate(DataType.objects.all(), 1) if data_type.have_limits]
+        data_types_need_limits = Column.LIMITED_DATA_TYPES
         context.update({
             'title': 'Edit schema',
             'formset': self.formset,
@@ -143,7 +136,7 @@ class SchemaDataSets(LoginRequiredMixin, SingleObjectMixin, ListView):
 
     def get(self, request, *args, **kwargs):
         self.object = get_object_or_404(
-            Schema.objects.prefetch_related('columns__data_type').select_related('owner'),
+            Schema.objects.prefetch_related('columns').select_related('owner'),
             slug=kwargs[self.slug_url_kwarg],
         )
         if self.object.owner != request.user:
@@ -167,7 +160,7 @@ def download(request):
     if request.method != 'GET':
         return HttpResponse(status=405)
 
-    data_set = get_object_or_404(DataSet, pk=request.GET.get('data_set'))
+    data_set = get_object_or_404(DataSet.objects.select_related('schema__owner'), pk=request.GET.get('data_set'))
     if data_set.schema.owner != request.user:
         raise Http404
 

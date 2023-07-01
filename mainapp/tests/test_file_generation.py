@@ -5,9 +5,8 @@ import re
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from schemas.settings import MEDIA_ROOT
 from ..data_generators.file_generation import generate_csv_file
-from ..models import Separator, Schema, Column, DataType, DataSet
+from ..models import Separator, Schema, Column, DataSet
 
 
 class TestGenerateCSVFile(TestCase):
@@ -30,15 +29,6 @@ class TestGenerateCSVFile(TestCase):
         cls.delimiter = Separator.objects.create(name='dot', char='.')
         cls.quotechar = Separator.objects.create(name='double-quote', char='"')
 
-        cls.data_type_1 = DataType.objects.create(
-            name='Word',
-            have_limits=True,
-        )
-        cls.data_type_2 = DataType.objects.create(
-            name='Sentence',
-            have_limits=True,
-        )
-
         cls.schema = Schema.objects.create(
             name=cls.schema_name,
             owner=cls.user,
@@ -50,24 +40,24 @@ class TestGenerateCSVFile(TestCase):
             name='first_column_signal_test',
             minimal=1,
             maximal=10,
-            data_type=cls.data_type_1,
+            data_type=Column.DataType.INTEGER,
             schema=cls.schema,
         )
         cls.column_2 = Column.objects.create(
             name='second_column_signal_test',
             minimal=2,
             maximal=8,
-            data_type=cls.data_type_2,
+            data_type=Column.DataType.FULL_NAME,
             schema=cls.schema,
             order=2,
         )
 
     def test_file_generating(self):
         data_set = DataSet.objects.create(schema=self.schema)
-        word_regex = re.compile(r'[a-z]{1,10}')
-        sentensce_regex = re.compile(r'[A-Z][a-z]{2,9}(?: [a-z]{3,10}){1,7}\.')
+        integer_regex = re.compile(r'\d{1,10}')
+        full_name_regex = re.compile(r'[A-Z][a-z]+(?:[ -][A-Z][a-z]+)? [A-Z][a-z]+')
 
-        generate_csv_file(data_set=data_set, rows_amount=200)
+        generate_csv_file(data_set=data_set, rows_amount=1000)
 
         self.assertTrue(data_set.finished)
         self.assertTrue(data_set.file)
@@ -76,10 +66,11 @@ class TestGenerateCSVFile(TestCase):
             with open(os.path.abspath(data_set.file.path), newline='') as csvfile:
                 reader = csv.DictReader(csvfile, delimiter=self.delimiter.char, quotechar=self.quotechar.char)
                 for row in reader:
-                    word = row['first_column_signal_test']
-                    sentence = row['second_column_signal_test']
-                    self.assertTrue(re.fullmatch(word_regex, word))
-                    self.assertTrue(re.fullmatch(sentensce_regex, sentence))
+                    integer = row[self.column_1.name]
+                    full_name = row[self.column_2.name]
+
+                    self.assertTrue(re.fullmatch(integer_regex, integer))
+                    self.assertTrue(re.fullmatch(full_name_regex, full_name))
 
         except:
             self.fail("invalid file")

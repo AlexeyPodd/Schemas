@@ -89,7 +89,7 @@
                             <div class="row">
                                 {% for field in column_form.visible_fields %}
                                     <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'ORDER' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-label-{{ forloop.parentloop.counter0 }}-container"{% elif field.name == 'maximal' %} id="maximal-label-{{ forloop.parentloop.counter0 }}-container"{% endif %}>
-                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_have_limits %}
                                             <label for="{{ field.id_for_label }}">{{field.label}}</label>
                                         {% endif %}
                                     </div>
@@ -102,7 +102,7 @@
                             <div class="row">
                                 {% for field in column_form.visible_fields %}
                                     <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'ORDER' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-input-{{ forloop.parentloop.counter0 }}-container"{% elif field.name == 'maximal' %} id="maximal-input-{{ forloop.parentloop.counter0 }}-container"{% endif %}>
-                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_have_limits %}
                                             {% if field.errors %}
                                                 {{ field|add_attrs:"is-invalid" }}
                                             {% else %}
@@ -134,7 +134,7 @@
                             <div class="row">
                                 {% for field in formset.empty_form.visible_fields %}
                                     <div class="col-{% if field.name == 'name' %}4{% elif field.name == 'data_type' %}3{% elif field.name == 'order' %}2{% else %}1{% endif %}"{% if field.name == 'minimal' %} id="minimal-label-__prefix__-container"{% elif field.name == 'maximal' %} id="maximal-label-__prefix__-container"{% endif %}>
-                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_type.have_limits %}
+                                        {% if not field.name == 'minimal' and not field.name == 'maximal' or column_form.instance.data_have_limits %}
                                             <label for="{{ field.id_for_label }}">{{field.label}}</label>
                                         {% endif %}
                                     </div>

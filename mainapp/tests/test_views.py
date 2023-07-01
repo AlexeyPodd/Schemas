@@ -87,7 +87,8 @@ class TestCreateSchemaView(NotAuthorisedMixin, AuthorisedMixin, TestView):
 
         self.assertTrue(isinstance(response.context.get('form'), SchemaForm))
         self.assertTrue(isinstance(response.context.get('formset'), ColumnFormSet))
-        self.assertEqual(response.context.get('data_types_need_limits'), [1, 2])
+        self.assertEqual(response.context.get('data_types_need_limits'),
+                         (Column.DataType.INTEGER, Column.DataType.TEXT))
 
     def test_POST_creates_new_schema(self):
         self.client.login(username=self.dummy_username, password=self.dummy_password)
@@ -104,14 +105,14 @@ class TestCreateSchemaView(NotAuthorisedMixin, AuthorisedMixin, TestView):
             'columns-MIN_NUM': 0,
             'columns-MAX_NUM_FORMS': 1000,
             'columns-0-name': column_1_name,
-            'columns-0-data_type': self.data_type_1.pk,
+            'columns-0-data_type': Column.DataType.INTEGER,
             'columns-0-minimal': 2,
             'columns-0-maximal': 8,
             'columns-0-ORDER': 1,
             'columns-1-name': column_2_name,
             'columns-1-minimal': 0,
             'columns-1-maximal': 10,
-            'columns-1-data_type': self.data_type_2.pk,
+            'columns-1-data_type': Column.DataType.TEXT,
             'columns-1-ORDER': 2,
         }
         response = self.client.post(self.url, data)
@@ -143,7 +144,8 @@ class TestEditSchemaView(NotAuthorisedMixin, AuthorisedMixin, AuthorisedNotOwner
 
         self.assertTrue(isinstance(response.context.get('form'), SchemaForm))
         self.assertTrue(isinstance(response.context.get('formset'), ColumnFormSet))
-        self.assertEqual(response.context.get('data_types_need_limits'), [1, 2])
+        self.assertEqual(response.context.get('data_types_need_limits'),
+                         (Column.DataType.INTEGER, Column.DataType.TEXT))
 
     def test_POST_edits_schema_and_columns(self):
         self.client.login(username=self.dummy_username, password=self.dummy_password)
@@ -160,7 +162,7 @@ class TestEditSchemaView(NotAuthorisedMixin, AuthorisedMixin, AuthorisedNotOwner
             'columns-MAX_NUM_FORMS': 1000,
             'columns-0-id': column_1.pk,
             'columns-0-name': column_1.name + '_edited',
-            'columns-0-data_type': column_1.data_type.pk,
+            'columns-0-data_type': column_1.data_type,
             'columns-0-minimal': 2,
             'columns-0-maximal': 8,
             'columns-0-ORDER': 1,
@@ -168,11 +170,11 @@ class TestEditSchemaView(NotAuthorisedMixin, AuthorisedMixin, AuthorisedNotOwner
             'columns-1-name': column_2.name,
             'columns-1-minimal': 100,
             'columns-1-maximal': 101,
-            'columns-1-data_type': column_2.data_type.pk,
+            'columns-1-data_type': column_2.data_type,
             'columns-1-ORDER': 3,
             'columns-1-DELETE': True,
             'columns-2-name': 'column_3',
-            'columns-2-data_type': column_1.data_type.pk,
+            'columns-2-data_type': column_1.data_type,
             'columns-2-minimal': 0,
             'columns-2-maximal': 3,
             'columns-2-ORDER': 2,
@@ -204,9 +206,9 @@ class TestSchemaDataSets(NotAuthorisedMixin, AuthorisedMixin, AuthorisedNotOwner
     def test_GET_queryset(self):
         wrong_schema = Schema.objects.create(name='wrong_schema', owner=self.second_user,
                                              delimiter=self.delimiter, quotechar=self.quotechar)
-        Column.objects.create(name='wrong_column_1', schema=wrong_schema, data_type=self.data_type_1,
+        Column.objects.create(name='wrong_column_1', schema=wrong_schema, data_type=Column.DataType.INTEGER,
                               minimal=1, maximal=10)
-        Column.objects.create(name='wrong_column_2', schema=wrong_schema, data_type=self.data_type_1,
+        Column.objects.create(name='wrong_column_2', schema=wrong_schema, data_type=Column.DataType.TEXT,
                               minimal=2, maximal=5)
 
         DataSet.objects.create(schema=wrong_schema)

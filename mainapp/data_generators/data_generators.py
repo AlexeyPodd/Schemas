@@ -3,12 +3,12 @@ from .managers import GenerationManager
 
 class CellDataGenerator:
     """Class for generating data of cell based on column's type and limitations, if needed"""
-    def __init__(self, data_type, minimal=None, maximal=None):
+    def __init__(self, data_type, have_limits, minimal=None, maximal=None, source_file_name=None):
         self._generation_method = GenerationManager.get_generation_method(data_type.name)
-        self._generation_kwargs = GenerationManager.get_generation_kwargs(have_limits=data_type.have_limits,
+        self._generation_kwargs = GenerationManager.get_generation_kwargs(have_limits=have_limits,
                                                                           minimal=minimal,
                                                                           maximal=maximal,
-                                                                          source_file=data_type.source_file)
+                                                                          source_file_name=source_file_name)
 
     def __call__(self):
         return self._generation_method(**self._generation_kwargs)

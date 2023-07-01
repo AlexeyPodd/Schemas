@@ -26,7 +26,7 @@
                         <tr>
                           <th scope="row">{{ forloop.counter }}</th>
                           <td>{{ column.name }}</td>
-                          <td>{{ column.data_type.name }}</td>
+                          <td>{{ column.get_data_type_display }}</td>
                         </tr>
                         {% endfor %}
                       </tbody>

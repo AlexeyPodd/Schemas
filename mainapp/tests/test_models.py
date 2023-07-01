@@ -1,14 +1,10 @@
-import os
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import resolve
 
-from schemas.settings import MEDIA_ROOT
 from ..data_generators.data_generators import CellDataGenerator, RowDataGenerator
-from ..models import Column, DataType, Separator, Schema
+from ..models import Column, Separator, Schema
 from ..views import SchemaDataSets
 
 
@@ -25,30 +21,31 @@ class TestModels(TestCase):
     def setUp(self):
         self.delimiter = Separator.objects.create(name='Comma', char=',')
         self.quotechar = Separator.objects.create(name='Double quote', char='\"')
-        self.data_type = DataType.objects.create(name='Full Name')
         self.schema = Schema.objects.create(name='test_schema', delimiter=self.delimiter,
                                             quotechar=self.quotechar, owner=self.user)
-        self.column = Column.objects.create(name='Some email', data_type=self.data_type, schema=self.schema)
-
-    def test_upload_wrong_extention_source_file(self):
-        file = SimpleUploadedFile('test.txt', b'test')
-        self.data_type.source_file = file
-        path = os.path.abspath(os.path.join(MEDIA_ROOT, self.data_type.source_file.path))
-
-        try:
-            self.assertRaises(ValidationError, self.data_type.full_clean)
-        finally:
-            if os.path.isfile(path):
-                os.remove(path)
+        self.column = Column.objects.create(name='Some email', data_type=Column.DataType.EMAIL, schema=self.schema)
 
     def test_getting_cell_data_generator(self):
         data_generator = self.column.get_data_generator()
 
         self.assertTrue(isinstance(data_generator, CellDataGenerator))
 
+    def test_column_data_have_limits(self):
+        self.assertFalse(self.column.data_have_limits)
+
+        self.column.data_type = Column.DataType.INTEGER
+        self.column.save()
+
+        self.assertTrue(self.column.data_have_limits)
+
+    def test_column_data_source_file_name(self):
+        self.column.data_type = Column.DataType.FULL_NAME
+        self.column.save()
+
+        self.assertEqual(self.column.data_source_file_name, "full_name.json")
+
     def test_column_not_set_limit_for_limited_data_type(self):
-        self.data_type = DataType.objects.create(name='Integer', have_limits=True)
-        self.column.data_type = self.data_type
+        self.column.data_type = Column.DataType.INTEGER
         self.column.save()
 
         with self.assertRaises(ValidationError):
@@ -56,14 +53,23 @@ class TestModels(TestCase):
             self.column.clean()
 
     def test_column_set_minimal_larger_maximum(self):
-        self.data_type = DataType.objects.create(name='Integer', have_limits=True)
-        self.column.data_type = self.data_type
+        self.column.data_type = Column.DataType.INTEGER
         self.column.save()
 
         with self.assertRaises(ValidationError):
             self.column.maximal = 12
             self.column.minimal = 100
             self.column.clean()
+
+    def test_column_minimal_and_maximal_forcibly_set_None_if_not_having_limits(self):
+        self.column.minimal = 12
+        self.column.maximal = 15
+        self.column.save()
+
+        self.column.refresh_from_db()
+
+        self.assertIsNone(self.column.minimal)
+        self.assertIsNone(self.column.maximal)
 
     def test_schema_url(self):
         url = self.schema.get_absolute_url()
@@ -76,9 +82,9 @@ class TestModels(TestCase):
         self.assertTrue(isinstance(data_generator, RowDataGenerator))
 
     def test_getting_column_headers(self):
-        Column.objects.create(name='second', data_type=self.data_type, schema=self.schema)
-        Column.objects.create(name='third', data_type=self.data_type, schema=self.schema)
-        Column.objects.create(name='forth', data_type=self.data_type, schema=self.schema)
+        Column.objects.create(name='second', data_type=Column.DataType.EMAIL, schema=self.schema)
+        Column.objects.create(name='third', data_type=Column.DataType.EMAIL, schema=self.schema)
+        Column.objects.create(name='forth', data_type=Column.DataType.EMAIL, schema=self.schema)
         column_headers = self.schema.column_headers
 
         self.assertEqual(column_headers, [self.column.name, 'second', 'third', 'forth'])

@@ -4,9 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import ExpressionWrapper, Q, BooleanField
-from django.http import HttpResponseRedirect, Http404, HttpResponse, FileResponse, JsonResponse
+from django.http import HttpResponseRedirect, Http404, FileResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_GET
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
@@ -155,11 +156,9 @@ class SchemaDataSets(LoginRequiredMixin, SingleObjectMixin, ListView):
         return context
 
 
+@require_GET
 @login_required
 def download(request):
-    if request.method != 'GET':
-        return HttpResponse(status=405)
-
     data_set = get_object_or_404(DataSet.objects.select_related('schema__owner'), pk=request.GET.get('data_set'))
     if data_set.schema.owner != request.user:
         raise Http404

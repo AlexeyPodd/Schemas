@@ -7,11 +7,17 @@ from mainapp.models import Schema
 
 
 def base_view_for_ajax(allowed_method):
+    """
+    Necessary checks and getting schema model object.
+    Allowed methods are GET and POST only.
+    """
+
+    if allowed_method not in ('GET', 'POST'):
+        raise ValueError("Allowed method can be GET or POST only.")
+
     def wrapper(view_func):
         @wraps(view_func)
         def wrapped(request):
-            """Necessary checks and getting schema model object."""
-
             if request.method != allowed_method:
                 return JsonResponse({'error': 'Method not allowed'}, status=405)
 

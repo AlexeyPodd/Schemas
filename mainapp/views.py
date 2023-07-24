@@ -2,7 +2,6 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import ExpressionWrapper, Q, BooleanField
 from django.http import HttpResponseRedirect, Http404, FileResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
@@ -11,11 +10,13 @@ from django.views.decorators.http import require_GET
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
+from .base_views import base_view_for_ajax
 from .forms import LoginUserForm, SchemaForm, ColumnFormSet
 from .models import Schema, DataSet, Column
 
 
 class UserLoginView(LoginView):
+    """View for login page."""
     form_class = LoginUserForm
     template_name = 'mainapp/login.html'
     extra_context = {'title': 'Login',
@@ -35,6 +36,7 @@ def logout_user(request):
 
 
 class SchemasView(LoginRequiredMixin, ListView):
+    """View for page with user's schemas."""
     model = Schema
     template_name = 'mainapp/schemas.html'
     context_object_name = 'schemas'
@@ -52,6 +54,7 @@ class SchemasView(LoginRequiredMixin, ListView):
 
 
 class CreateSchemaView(LoginRequiredMixin, CreateView):
+    """View for page with form, where user can create new schema."""
     model = Schema
     template_name = 'mainapp/schema_form.html'
     form_class = SchemaForm
@@ -89,6 +92,7 @@ class CreateSchemaView(LoginRequiredMixin, CreateView):
 
 
 class EditSchemaView(LoginRequiredMixin, UpdateView):
+    """Page with form, where user can edit one of his schemas."""
     model = Schema
     template_name = 'mainapp/schema_form.html'
     form_class = SchemaForm
@@ -132,6 +136,10 @@ class EditSchemaView(LoginRequiredMixin, UpdateView):
 
 
 class SchemaDataSets(LoginRequiredMixin, SingleObjectMixin, ListView):
+    """
+    View for page with list of previously generated data sets of specific schema.
+    Also on this page user can generate new data sets of this schema, download generated schemas or delete them.
+    """
     template_name = 'mainapp/schema_data_sets.html'
     slug_url_kwarg = 'schema_slug'
 
@@ -159,6 +167,7 @@ class SchemaDataSets(LoginRequiredMixin, SingleObjectMixin, ListView):
 @require_GET
 @login_required
 def download(request):
+    """View for processing downloads generated data sets."""
     data_set = get_object_or_404(DataSet.objects.select_related('schema__owner'), pk=request.GET.get('data_set'))
     if data_set.schema.owner != request.user:
         raise Http404
@@ -169,41 +178,17 @@ def download(request):
     return FileResponse(data_set.file.open(), as_attachment=True, filename=data_set.file.name)
 
 
-def delete_schema(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    schema_slug = request.POST.get('schema')
-    try:
-        schema = Schema.objects.select_related('owner').get(slug=schema_slug, owner=request.user)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    if schema.owner != request.user:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
+@base_view_for_ajax(allowed_method='POST')
+def delete_schema(request, schema):
+    """View for deletion data set on ajax request."""
+    schema_slug = schema.slug
     schema.delete()
     return JsonResponse({'deleted_schema': schema_slug})
 
 
-def generate_data_set(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    try:
-        schema = Schema.objects.select_related('owner').get(slug=request.POST.get('schema'))
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    if schema.owner != request.user:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
+@base_view_for_ajax(allowed_method='POST')
+def generate_data_set(request, schema):
+    """View for generating new data set on ajax request."""
     try:
         rows_amount = int(request.POST.get('rows'))
     except (TypeError, ValueError):
@@ -217,21 +202,12 @@ def generate_data_set(request):
     return JsonResponse({'file_generated': bool(data_set.file), 'data_set_id': data_set.pk})
 
 
-def get_finished_data_sets_info(request):
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    try:
-        schema = Schema.objects.select_related('owner').get(slug=request.GET.get('schema'), owner=request.user)
-    except ObjectDoesNotExist:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
-    if schema.owner != request.user:
-        return JsonResponse({'error': 'Not Founded'}, status=404)
-
+@base_view_for_ajax(allowed_method='GET')
+def get_finished_data_sets_info(request, schema):
+    """
+    View for monitoring current statuses of generating data sets.
+    Needs if user disconnected from server and then connects again before generation of file ended.
+    """
     data_sets = DataSet.objects.filter(schema=schema).\
         annotate(file_generated=ExpressionWrapper(~Q(file=''), output_field=BooleanField())).\
         values('id', 'finished', 'file_generated')

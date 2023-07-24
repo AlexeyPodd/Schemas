@@ -44,7 +44,6 @@ class Column(models.Model):
     minimal = models.PositiveSmallIntegerField(blank=True, null=True)
     maximal = models.PositiveSmallIntegerField(blank=True, null=True)
     data_type = models.CharField(max_length=3, choices=DataType.choices)
-    # data_type = models.ForeignKey('DataType', on_delete=models.PROTECT, related_name='columns', verbose_name='type')
     schema = models.ForeignKey('Schema', on_delete=models.CASCADE, related_name='columns')
     order = models.PositiveSmallIntegerField(default=1)
 
@@ -90,6 +89,7 @@ class Column(models.Model):
 
 
 class Schema(models.Model):
+    """Represent schema, the structure of generating data sets."""
     name = models.CharField(max_length=64)
     slug = AutoSlugField(populate_from='name', unique=True)
     time_update = models.DateField(auto_now=True, verbose_name='modified')
@@ -117,6 +117,7 @@ class Schema(models.Model):
 
 
 class Separator(models.Model):
+    """Model of separator (delimiter and quotechar) in generating csv files."""
     name = models.CharField(max_length=32)
     char = models.CharField(max_length=1, unique=True)
 
@@ -125,6 +126,12 @@ class Separator(models.Model):
 
 
 class DataSet(models.Model):
+    """
+    Representation of data set.
+    If generating of csv file is processing: finished status is False, and it links to no file.
+    If file generating was successful: finished status would be True and field 'file' contains link to csv file.
+    If file generating fails: finished status would be True, but field 'file' links to no file.
+    """
     time_create = models.DateField(auto_now_add=True, verbose_name="created")
     file = models.FileField(validators=[FileExtensionValidator(allowed_extensions=['csv'])], blank=True,
                             verbose_name='csv file')

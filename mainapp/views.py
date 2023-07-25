@@ -23,9 +23,9 @@ class UserLoginView(LoginView):
                      'button_label': 'Login'}
 
     def get_success_url(self):
-        next = self.request.GET.get('next')
-        if next:
-            return next
+        next_url = self.request.GET.get('next')
+        if next_url:
+            return next_url
 
         return reverse_lazy('schema-list')
 

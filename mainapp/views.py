@@ -40,14 +40,7 @@ class SchemasView(LoginRequiredMixin, ListView):
     model = Schema
     template_name = 'mainapp/schemas.html'
     context_object_name = 'schemas'
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'title': 'Data Schemas',
-            'current_section': 'schemas',
-        })
-        return context
+    extra_context = {'title': 'Data Schemas', 'current_section': 'schemas'}
 
     def get_queryset(self):
         return self.model.objects.filter(owner=self.request.user)

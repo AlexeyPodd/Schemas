@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import datetime
 import os
 from pathlib import Path
 
@@ -132,6 +133,53 @@ MEDIA_URL = 'media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
+
+DATA_GENERATION_SETTINGS = {
+    "EML": {
+        "MIN_EMAIL_NAME_LENGTH": 5,
+        "MAX_EMAIL_NAME_LENGTH": 12,
+        "EMAIL_DOMAINS": ['gmail.com'],
+    },
+    "DMN": {
+        "MIN_DOMAIN_NAME_LENGTH": 3,
+        "MAX_DOMAIN_NAME_LENGTH": 15,
+        "TOP_LEVEL_DOMAINS": ['com', 'ua', 'club', 'net', 'org', 'uk', 'jp', 'pl', 'io', 'edu', 'gov', 'info'],
+    },
+    "PHN": {
+        "COUNTRY_CODES": ['+380'],
+        "DIGITS_TOTAL": 12,
+    },
+    "CNM": {
+        "MIN_WORD_LENGTH": 5,
+        "MAX_WORD_LENGTH": 15,
+        "MIN_WORDS_AMOUNT": 1,
+        "MAX_WORDS_AMOUNT": 5,
+    },
+    "TXT": {
+        "MIN_WORD_LENGTH": 3,
+        "MAX_WORD_LENGTH": 10,
+        "MIN_SENTENCE_LENGTH": 3,
+        "MAX_SENTENCE_LENGTH": 10,
+    },
+    "ADR": {
+        "MIN_COUNTRY_NAME_LENGTH": 3,
+        "MAX_COUNTRY_NAME_LENGTH": 14,
+        "MIN_DISTRICT_NAME_LENGTH": 5,
+        "MAX_DISTRICT_NAME_LENGTH": 14,
+        "MIN_CITY_NAME_LENGTH": 5,
+        "MAX_CITY_NAME_LENGTH": 8,
+        "MIN_STREET_WORDS_AMOUNT": 1,
+        "MAX_STREET_WORDS_AMOUNT": 3,
+        "MIN_STREET_NUMBER": 1,
+        "MAX_STREET_NUMBER": 100,
+        "MIN_BUILDING_NUMBER": 1,
+        "MAX_BUILDING_NUMBER": 500,
+    },
+    "DTE": {
+        "START_DATE": datetime.date(1000, 1, 1),
+        "END_DATE": datetime.date(2100, 12, 31),
+    },
+}
 
 if DEBUG:
     import socket

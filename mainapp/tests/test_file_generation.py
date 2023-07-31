@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from ..data_generators.file_generation import generate_csv_file
-from ..models import Separator, Schema, Column, DataSet
+from ..models import Separator, Schema, Column, DataSet, SourceData
 
 
 class TestGenerateCSVFile(TestCase):
@@ -51,6 +51,14 @@ class TestGenerateCSVFile(TestCase):
             schema=cls.schema,
             order=2,
         )
+
+        source_data = {
+            'first_names': ['Alice', 'Bob', 'John', 'Jack', 'Piter'],
+            'last_names': ["Kapahu", "Kapanke", "Kapaun", "Kapelke", "Kaper"],
+            "jobs": ["3d animator", "3d artist", "3d designer", "3d modeler", "3d specialist"],
+        }
+        SourceData.objects.bulk_create([SourceData(source_type=s_t, source_data=s_d)
+                                        for s_t, values in source_data.items() for s_d in values])
 
     def test_file_generating(self):
         data_set = DataSet.objects.create(schema=self.schema)

@@ -21,7 +21,7 @@ class TestGenerationManager(TestCase):
             have_limits=True,
             minimal=0,
             maximal=10,
-            source_file_name="test.json",
+            source_data={'letters': ['a', 'b', 'c']},
         )
 
         self.assertTrue(isinstance(kwargs, dict))
@@ -35,7 +35,7 @@ class TestGenerationManager(TestCase):
             have_limits=False,
             minimal=0,
             maximal=10,
-            source_file_name=None,
+            source_data=None,
         )
 
         self.assertTrue(isinstance(kwargs, dict))
@@ -47,19 +47,19 @@ class TestGenerationManager(TestCase):
                 have_limits=True,
                 minimal=0,
                 maximal=None,
-                source_file_name="test.json",
+                source_data={'letters': ['a', 'b', 'c']},
             )
         with self.assertRaises(ValueError):
             GenerationManager.get_generation_kwargs(
                 have_limits=True,
                 minimal=None,
                 maximal=10,
-                source_file_name="test.json",
+                source_data={'letters': ['a', 'b', 'c']},
             )
         with self.assertRaises(ValueError):
             GenerationManager.get_generation_kwargs(
                 have_limits=True,
                 minimal=None,
                 maximal=None,
-                source_file_name="test.json",
+                source_data={'letters': ['a', 'b', 'c']},
             )

@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
@@ -17,12 +17,16 @@ class Column(models.Model):
         1. Add name of data type and short version of name (3 chars) to inner class DataType, likewise present.
         2. Add function for generating data to file data_generation.py in package data_generators.
             2.1 If your data type have limits (minimal and maximal), function should take these parameters.
-            2.2 If your data type uses json file for generating data - this file should contain dictionary,
-                and function should take its keys as arguments.
+            2.2 If your data type uses source data for generating - function should take this source data lists as
+            arguments, named as source data types.
         3. If your data type have limits, you also should add it to LIMITED_DATA_TYPES collection below.
-        4. If your data type uses json file, you also should add it to DATA_TYPE_SOURCE_FILES dictionary below as key,
-            with value of name of your source file. File should be placed in "source" directory in the SOURCE_ROOT.
-            Extension of file should be json.
+        4. If your data type uses source data, you also should:
+            4.1 Add it to DATA_TYPE_SOURCE_TYPES dictionary below as key, with value of list with source data types.
+            4.2 Add this data to data base via model SourceData using one of methods - manage.py shell,
+                admin of the site, or load from json file using command "load_data_source" (in this case json file must
+                contain dictionary, where keys are source data types,
+                and values are lists of data options for generating).
+
     """
 
     class DataType(models.TextChoices):
@@ -38,7 +42,7 @@ class Column(models.Model):
         DATE = "DTE"
 
     LIMITED_DATA_TYPES = (DataType.INTEGER, DataType.TEXT)
-    DATA_TYPE_SOURCE_FILES = {DataType.FULL_NAME: "full_name.json", DataType.JOB: "job.json"}
+    DATA_TYPE_SOURCE_TYPES = {DataType.FULL_NAME: ["first_names", "last_names"], DataType.JOB: ["jobs"]}
 
     name = models.CharField(max_length=64)
     minimal = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -52,16 +56,31 @@ class Column(models.Model):
         verbose_name_plural = 'Schema columns'
         ordering = ['schema', 'order']
 
+    def __str__(self):
+        return self.name
+
     @property
     def data_have_limits(self):
         return self.data_type in self.LIMITED_DATA_TYPES
 
-    @property
-    def data_source_file_name(self):
-        return self.DATA_TYPE_SOURCE_FILES.get(self.data_type)
+    def _get_source_data(self):
+        source_types = self.DATA_TYPE_SOURCE_TYPES.get(self.data_type)
+        data = {}
 
-    def __str__(self):
-        return self.name
+        if source_types is not None:
+            for source_type in source_types:
+                source_data_list = list(
+                    SourceData.objects.filter(source_type=source_type).values_list('source_data', flat=True),
+                )
+
+                if not source_data_list:
+                    raise ObjectDoesNotExist(f"Not Found Source Data with type {source_type}.")
+
+                data.update(
+                    {source_type: source_data_list},
+                )
+
+        return data
 
     def get_data_generator(self):
         return CellDataGenerator(
@@ -69,7 +88,7 @@ class Column(models.Model):
             have_limits=self.data_have_limits,
             minimal=self.minimal,
             maximal=self.maximal,
-            source_file_name=self.data_source_file_name,
+            source_data=self._get_source_data(),
         )
 
     def clean(self):
@@ -86,6 +105,12 @@ class Column(models.Model):
             self.minimal = None
             self.maximal = None
         super().save()
+
+
+class SourceData(models.Model):
+    """Model for storing source data for generating data types, that needs source."""
+    source_type = models.CharField(max_length=25, db_index=True)
+    source_data = models.CharField(max_length=60)
 
 
 class Schema(models.Model):

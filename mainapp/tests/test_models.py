@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import resolve
 
 from ..data_generators.data_generators import CellDataGenerator, RowDataGenerator
-from ..models import Column, Separator, Schema
+from ..models import Column, Separator, Schema, SourceData
 from ..views import SchemaDataSets
 
 
@@ -25,6 +25,14 @@ class TestModels(TestCase):
                                             quotechar=self.quotechar, owner=self.user)
         self.column = Column.objects.create(name='Some email', data_type=Column.DataType.EMAIL, schema=self.schema)
 
+        source_data = {
+            'first_names': ['Alice', 'Bob', 'John', 'Jack', 'Piter'],
+            'last_names': ["Kapahu", "Kapanke", "Kapaun", "Kapelke", "Kaper"],
+            "jobs": ["3d animator", "3d artist", "3d designer", "3d modeler", "3d specialist"],
+        }
+        SourceData.objects.bulk_create([SourceData(source_type=s_t, source_data=s_d)
+                                        for s_t, values in source_data.items() for s_d in values])
+
     def test_getting_cell_data_generator(self):
         data_generator = self.column.get_data_generator()
 
@@ -38,11 +46,17 @@ class TestModels(TestCase):
 
         self.assertTrue(self.column.data_have_limits)
 
-    def test_column_data_source_file_name(self):
+    def test_column_get_source_data(self):
         self.column.data_type = Column.DataType.FULL_NAME
         self.column.save()
 
-        self.assertEqual(self.column.data_source_file_name, "full_name.json")
+        self.assertEqual(
+            self.column._get_source_data(),
+            {
+                'first_names': ['Alice', 'Bob', 'John', 'Jack', 'Piter'],
+                'last_names': ["Kapahu", "Kapanke", "Kapaun", "Kapelke", "Kaper"],
+            },
+        )
 
     def test_column_not_set_limit_for_limited_data_type(self):
         self.column.data_type = Column.DataType.INTEGER

@@ -1,8 +1,5 @@
-import json
-import os
 from typing import Callable
 
-from schemas.settings import STATIC_ROOT
 from . import data_generation
 
 
@@ -17,7 +14,7 @@ class GenerationManager:
 
     @classmethod
     def get_generation_kwargs(cls, have_limits: bool, minimal: [int, None], maximal: [int, None],
-                              source_file_name: [str, None]) -> dict:
+                              source_data: [dict, None]) -> dict:
 
         if have_limits and (minimal is None or maximal is None):
             raise ValueError("Both limits (maximal and minimal) nust be set")
@@ -26,19 +23,7 @@ class GenerationManager:
         if have_limits:
             kwargs.update(dict(minimal=minimal, maximal=maximal))
 
-        if source_file_name:
-            kwargs.update(cls._read_source_file(source_file_name))
-        return kwargs
+        if source_data:
+            kwargs.update(source_data)
 
-    @staticmethod
-    def _read_source_file(file_name: str) -> dict:
-        try:
-            with open(os.path.join(STATIC_ROOT, 'source', file_name)) as file:
-                data = json.load(file)
-                if not isinstance(data, dict):
-                    raise TypeError("The content of the source file must be a dictionary")
-        except FileNotFoundError:
-            raise ValueError("Data type contains invalid path to source file")
-        except Exception:
-            raise ValueError("Source file contains invalid data")
-        return data
+        return kwargs

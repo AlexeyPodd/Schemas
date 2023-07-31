@@ -40,3 +40,11 @@ class DataSetAdmin(admin.ModelAdmin):
     list_filter = ('time_create', 'finished')
     fields = ('schema', 'schema__owner', 'time_create', 'file', 'finished')
     readonly_fields = ('schema', 'time_create', 'file', 'finished')
+
+
+class SourceDataAdmin(admin.ModelAdmin):
+    list_display = ('id', 'source_type', 'source_data')
+    list_display_links = ('id', 'source_data')
+    search_fields = ('source_data',)
+    list_filter = ('source_type',)
+    fields = ('source_type', 'source_data')

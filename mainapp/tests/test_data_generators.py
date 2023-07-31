@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from ..data_generators.data_generators import CellDataGenerator, RowDataGenerator
-from ..models import Column, Schema, Separator
+from ..models import Column, Schema, Separator, SourceData
 
 
 class TestDataGenerators(TestCase):
@@ -30,6 +30,15 @@ class TestDataGenerators(TestCase):
         )
         delimiter = Separator.objects.create(name='dot', char='.')
         quotechar = Separator.objects.create(name='double-quote', char='"')
+
+        source_data = {
+            'first_names': ['Alice', 'Bob', 'John', 'Jack', 'Piter'],
+            'last_names': ["Kapahu", "Kapanke", "Kapaun", "Kapelke", "Kaper"],
+            "jobs": ["3d animator", "3d artist", "3d designer", "3d modeler", "3d specialist"],
+        }
+        SourceData.objects.bulk_create([SourceData(source_type=s_t, source_data=s_d)
+                                        for s_t, values in source_data.items() for s_d in values])
+
         schema = Schema.objects.create(
             name="test_schema",
             owner=user,

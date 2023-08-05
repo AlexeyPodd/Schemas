@@ -12,6 +12,36 @@ from ..forms import SchemaForm, ColumnFormSet
 from ..models import Schema, Column, DataSet
 
 
+class TestUserRegisterView(TestView):
+    url_name = 'register'
+
+    def test_GET(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'mainapp/auth_form.html')
+
+    def test_POST_registering(self):
+        users_amount = User.objects.count()
+
+        response = self.client.post(
+            self.url,
+            {
+                'username': 'new_test_user',
+                'password1': 'i3oi34mi34iomo34im',
+                'password2': 'i3oi34mi34iomo34im',
+                'email': 'sdkfd@gmail.com',
+            },
+        )
+
+        self.assertEqual(User.objects.count(), users_amount+1)
+
+        user = auth.get_user(self.client)
+        self.assertTrue(user.is_authenticated)
+
+        self.assertRedirects(response, reverse('schema-list'))
+
+
 class TestUserLoginView(TestView):
     url_name = 'login'
 

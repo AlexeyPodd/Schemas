@@ -1,11 +1,15 @@
 from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 
-from ..views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets,\
-    download, delete_schema, generate_data_set, get_finished_data_sets_info
+from ..views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets, \
+    download, delete_schema, generate_data_set, get_finished_data_sets_info, UserRegisterView
 
 
 class TestUrls(SimpleTestCase):
+    def test_register_url_resolves(self):
+        url = reverse('register')
+        self.assertEqual(resolve(url).func.view_class, UserRegisterView)
+        
     def test_login_url_resolves(self):
         url = reverse('login')
         self.assertEqual(resolve(url).func.view_class, UserLoginView)

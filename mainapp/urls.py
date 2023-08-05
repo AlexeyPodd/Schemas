@@ -1,9 +1,10 @@
 from django.urls import path
 
-from mainapp.views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets,\
-    download, delete_schema, generate_data_set, get_finished_data_sets_info
+from mainapp.views import UserLoginView, logout_user, SchemasView, CreateSchemaView, EditSchemaView, SchemaDataSets, \
+    download, delete_schema, generate_data_set, get_finished_data_sets_info, UserRegisterView
 
 urlpatterns = [
+    path('register/', UserRegisterView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('logout/', logout_user, name='logout'),
     path('', SchemasView.as_view(), name='schema-list'),

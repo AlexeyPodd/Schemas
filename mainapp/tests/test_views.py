@@ -19,7 +19,7 @@ class TestUserLoginView(TestView):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'mainapp/login.html')
+        self.assertTemplateUsed(response, 'mainapp/auth_form.html')
 
     def test_POST_authorises(self):
         response = self.client.post(self.url, {'username': self.dummy_username, 'password': self.dummy_password})

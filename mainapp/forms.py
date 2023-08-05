@@ -1,8 +1,29 @@
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django import forms
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
 from mainapp.models import Schema, Column, Separator
+
+
+class RegisterUserForm(UserCreationForm):
+    field_order = ("username", "email", "password1", "password2")
+    username = forms.CharField(label='Username',
+                               widget=forms.TextInput(attrs={'class': 'form-control',
+                                                             'placeholder': 'name'}))
+    email = forms.EmailField(label='Email',
+                             widget=forms.EmailInput(attrs={'class': 'form-control',
+                                                            'placeholder': 'email'}))
+    password1 = forms.CharField(label='Password',
+                                widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                  'placeholder': 'password'}))
+    password2 = forms.CharField(label='Password Confirmation',
+                                widget=forms.PasswordInput(attrs={'class': 'form-control',
+                                                                  'placeholder': 'password'}))
+
+    class Meta:
+        model = User
+        fields = ('username', 'password1', 'password2')
 
 
 class LoginUserForm(AuthenticationForm):

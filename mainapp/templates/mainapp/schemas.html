@@ -49,9 +49,15 @@
 {% endblock %}
 
 {% block additional_scripts %}
+
+{% url 'delete-schema' as delete_schema_url %}
+{{ delete_schema_url|json_script:"delete-schema-url" }}
+
+{{ schema_slugs|json_script:"schema-slugs" }}
+
 <script>
-    const schemaSlugs = [{% for schema in schemas %}"{{ schema.slug }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
-    const deleteSchemaUrl = "{% url 'delete-schema' %}";
+    const schemaSlugs = JSON.parse(document.getElementById('schema-slugs').textContent);
+    const deleteSchemaUrl = JSON.parse(document.getElementById('delete-schema-url').textContent);
 </script>
 <script src="{% static 'JS/delete-schema.js' %}"></script>
 {% endblock %}

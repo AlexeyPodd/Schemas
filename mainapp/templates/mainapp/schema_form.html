@@ -167,8 +167,9 @@
 {% endblock %}
 
 {% block additional_scripts %}
+{{ data_types_need_limits|json_script:"values-data-type-need-limit" }}
 <script>
-    const valuesDataTypeNeedLimit = [{% for value in data_types_need_limits %}"{{ value }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const valuesDataTypeNeedLimit = JSON.parse(document.getElementById('values-data-type-need-limit').textContent);
 </script>
 <script src="{% static 'JS/formset-management.js' %}"></script>
 {% endblock %}

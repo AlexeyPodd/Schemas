@@ -85,11 +85,23 @@
 {% endblock %}
 
 {% block additional_scripts %}
+
+{% url 'data-set-start-generating' as data_set_start_generating_url %}
+{{ data_set_start_generating_url|json_script:"data-set-start-generating-url" }}
+
+{% url 'download' as download_url %}
+{{ download_url|json_script:"download-url" }}
+
+{% url 'get-finished-data-sets-info' as get_finished_data_sets_info_url %}
+{{ get_finished_data_sets_info_url|json_script:"get-finished-data-sets-info-url" }}
+
+{{ schema.slug|json_script:"schema-slug" }}
+
 <script>
-    let dataGeneratingUrl = "{% url 'data-set-start-generating' %}"
-    let downloadUrl = "{% url 'download' %}"
-    let getGeneratingDataSetIdsUrl = "{% url 'get-finished-data-sets-info' %}"
-    let schemaSlug = "{{ schema.slug }}"
+    const dataGeneratingUrl = JSON.parse(document.getElementById('data-set-start-generating-url').textContent);
+    const downloadUrl = JSON.parse(document.getElementById('download-url').textContent);
+    const schemaSlug = JSON.parse(document.getElementById('schema-slug').textContent);
+    const getGeneratingDataSetIdsUrl = JSON.parse(document.getElementById('get-finished-data-sets-info-url').textContent);
 </script>
 <script src="{% static 'JS/data-set-generating.js' %}"></script>
 <script src="{% static 'JS/track-processing-data-sets-statuses.js' %}"></script>

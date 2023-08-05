@@ -8,7 +8,7 @@
 <div class="container flex-grow-1 d-flex align-items-center justify-content-center vh-100">
     <div class="col-12 col-md-9 col-lg-7 col-xl-6">
         <div class="card" style="border-radius: 15px;">
-            <div class="card-body p-5">
+            <div class="card-body p-5 text-center">
                 <h2 class="text-center mb-5">{{title}}</h2>
                 <form method="post">
                     {% csrf_token %}
@@ -45,6 +45,9 @@
                     </div>
 
                 </form>
+                {% if title == 'Login' %}
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
             </div>
         </div>
     </div>

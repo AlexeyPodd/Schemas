@@ -1,4 +1,4 @@
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
@@ -11,14 +11,27 @@ from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 
 from .base_views import base_view_for_ajax
-from .forms import LoginUserForm, SchemaForm, ColumnFormSet
+from .forms import RegisterUserForm, LoginUserForm, SchemaForm, ColumnFormSet
 from .models import Schema, DataSet, Column
+
+
+class UserRegisterView(CreateView):
+    """View for registering new user."""
+    form_class = RegisterUserForm
+    template_name = 'mainapp/auth_form.html'
+    extra_context = {'title': 'Registration',
+                     'button_label': 'Register'}
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return redirect('schema-list')
 
 
 class UserLoginView(LoginView):
     """View for login page."""
     form_class = LoginUserForm
-    template_name = 'mainapp/login.html'
+    template_name = 'mainapp/auth_form.html'
     extra_context = {'title': 'Login',
                      'button_label': 'Login'}
 
@@ -40,10 +53,18 @@ class SchemasView(LoginRequiredMixin, ListView):
     model = Schema
     template_name = 'mainapp/schemas.html'
     context_object_name = 'schemas'
-    extra_context = {'title': 'Data Schemas', 'current_section': 'schemas'}
 
     def get_queryset(self):
         return self.model.objects.filter(owner=self.request.user)
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'title': 'Data Schemas',
+            'current_section': 'schemas',
+            'schema_slugs': [schema.slug for schema in context[self.context_object_name]],
+        })
+        return context
 
 
 class CreateSchemaView(LoginRequiredMixin, CreateView):

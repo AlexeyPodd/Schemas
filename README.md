@@ -13,3 +13,5 @@ There is different types of data. Some needs limits set for generating, some use
 Before running test you should set SECRET_KEY in schemas.settings.py or environment variable SECRET_KEY.
 For launching also needed standard manipulations - such as providing migrations, collecting static, creating superuser, etc.
 But also for proper functioning of the site you would need to set some Separators in site admin.
+After that for launching you should load all source data from json source files to db using site admin, shell or
+custom command 'load_data_source'.
